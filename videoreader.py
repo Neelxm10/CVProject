@@ -2,6 +2,9 @@ import cv2 as cv
 from matplotlib import pyplot as py
 import numpy as np
 import os
+from imageProcessor import imageProcessor
+
+
 ## Import Sample video
 filename = "lexusis300.mov"
 capture = cv.VideoCapture(filename)
@@ -12,15 +15,14 @@ os.mkdir('Frame_Dump')
 while (capture.isOpened()):
     state,frame = capture.read()
     if state:
-        cv.imshow('video reader', frame)
-        cv.imwrite('Frame_Dump/Frame'+str(framecnt)+ '.png', frame)
         framecnt+=1
+        imageProcessor(frame,framecnt)
         print('Print....FrameCount:'+str(framecnt)+'\n')
-        cv.waitKey(20)
+        
+      
     else:
         break
 
 
 
 
-cv.destroyAllWindows()
