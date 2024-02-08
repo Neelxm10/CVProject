@@ -4,14 +4,13 @@ import numpy as np
 import os
 from imageProcessor import imageProcessor
 
-
 ## Import Sample video
-filename = "lexusis300.mov"
+filename = "/home/instructor/Documents/OpenCV/CVFInalProj/CVProject/CVProject/IMG_8866.mov"
 capture = cv.VideoCapture(filename)
 
 #frame counter initialization
 framecnt = 0
-os.mkdir('Frame_Dump')
+os.mkdir('Frame_Dump2')
 while (capture.isOpened()):
     state,frame = capture.read()
     if state:
@@ -22,6 +21,8 @@ while (capture.isOpened()):
       
     else:
         break
+
+
 
 
 

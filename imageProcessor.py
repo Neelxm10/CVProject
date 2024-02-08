@@ -17,5 +17,3 @@ def imageProcessor(img, framecnt):
     cv.imwrite('Frame_Dump/FrameHSV'+str(framecnt)+ '.png', imgHSV)
     cv.waitKey(20)
     
-    
-cv.destroyAllWindows()
