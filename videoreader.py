@@ -6,7 +6,7 @@ from imageProcessor import imageProcessor
 
 
 ## Import Sample video
-filename = "lexusis300.mov"
+filename = "My_Movie.mov"
 capture = cv.VideoCapture(filename)
 
 #frame counter initialization
