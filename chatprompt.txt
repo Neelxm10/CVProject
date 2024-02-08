@@ -1,0 +1,132 @@
+This is my whole code:
+import cv2 as cv
+from matplotlib import pyplot as py
+import numpy as np
+import os
+from imageProcessor import imageProcessor
+
+
+## Import Sample video
+filename = "IMG_8866.mov"
+capture = cv.VideoCapture(filename)
+
+#frame counter initialization
+framecnt = 0
+#make a directory called frame dump
+if not os.path.exists:
+    os.mkdir('Frame_Dump')
+else:
+    print("Directory already exists, proceeding with overwriting directory\n")
+#while the video capture bit is true
+while (capture.isOpened()):
+    #store the state whether there is a frame or not, and record the frame data
+    state,frame = capture.read()
+    #if state is true (state == 1), process the image
+    if state:
+        framecnt+=1
+        imageProcessor(frame,framecnt)
+        print('FrameCount:'+str(framecnt)+'\n')
+        
+    #other wise end the program (if there is no frame, state == 0)  
+    else:
+        print("No remaining frames to process\n") 
+        break
+
+import cv2 as cv
+from matplotlib import pyplot as plt
+import numpy as np
+import os
+from ransac import ransac
+#Currently converts image to HSV to test functionality. We can build algorithm here.
+
+def imageProcessor(img, framecnt):
+    print('processing image...\n')
+    #show the original image
+    cv.imshow('video reader', img)
+    #Convert to HSV and display HSV image frame by frame. 
+    imgHSV= cv.cvtColor(img, cv.COLOR_BGR2HSV)
+    imgHSVGS = cv.cvtColor(imgHSV, cv.COLOR_BGR2GRAY)
+    imgSat= imgHSV[:,:,1]
+    imgVal = imgHSV[:,:,0]
+    imgHue = imgHSV[:,:,2]
+    #Apply initial binary mask using Saturation image channel
+    ret, mask = cv.threshold(imgVal, 90, 220, cv.THRESH_BINARY)
+
+    #create structuring element and use it to perform opening mask
+    disc = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7,7))
+    
+    dilated_mask = cv.dilate(mask, disc)
+    eroded_mask = cv.erode(dilated_mask, disc)
+    #Subtract dilated mask from initial binary mask to retreive only the edges
+    edges = cv.absdiff(mask, eroded_mask)
+
+    #stack locations of edge detected pixels in the binary image
+    edge_px = np.column_stack(np.where(edges>0))
+
+    lines = ransac(edge_px, 1.0, 100, 4)
+
+    for i in lines:
+        m, b = i
+        xval = np.arange(0, edges.shape[1])
+        yval = (m*xval) + b
+        plt.plot(xval, yval)
+        plt.show()
+
+    # Display images
+    #v.imshow('Original Image', img)
+    cv.imshow('Edge Detection', edges)
+    #cv.imshow('Image with Lines', img_with_lines)
+    #cv.imwrite('Frame_Dump/Frame_' + str(framecnt) + '.png', img_with_lines)
+    cv.waitKey(0)
+    #With Edge detection performed now we get the contour lines
+
+    
+cv.destroyAllWindows()
+
+import numpy as np
+from matplotlib import pyplot as plt
+#img = binary image with only edges
+#threshold = depends on noise level in the image, the lower the stricter it is
+#max_iterations = how many times you want the algo to repeat
+#min_inline = the minimum number of lines that need to intersect for a line to be valid
+
+
+
+def ransac(img, threshold, max_iterations, min_inline):
+    #Preallocate variables
+    best_fit = None
+    best_inliers = 0
+    num_points = len(img)
+    #Accumulator array
+    detected_lines = []
+    for i in range(max_iterations):
+        #pick two random sample points to get slope info
+        sample_ind = np.random.randint(0, num_points, size=2)
+        sample = img[sample_ind]
+
+        #get straight line info from point to point y=mx+b
+        x1, y1 = sample[0]
+        x2, y2 = sample[1]
+        m = (y2-y1)/(x2-x1)
+        b = y1 - (m*x1)
+
+        #Compute line distance
+        dist = np.abs(img[:,1] - (m*img[:,0]+b))
+
+        #identify inliers
+        inline = img[dist < threshold]
+
+        if len(inline >= min_inline):
+            detected_lines.append((m,b))
+    
+    return detected_lines
+
+    I get the following error: 
+    /home/neel/opencv-practice/CVProject/ransac.py:25: RuntimeWarning: divide by zero encountered in long_scalars
+  m = (y2-y1)/(x2-x1)
+/home/neel/opencv-practice/CVProject/ransac.py:29: RuntimeWarning: invalid value encountered in add
+  dist = np.abs(img[:,1] - (m*img[:,0]+b))
+/home/neel/opencv-practice/CVProject/ransac.py:32: RuntimeWarning: invalid value encountered in less
+  inline = img[dist < threshold]
+
+  I'd like to be able to plot the lines made by the ransac algorithm on top of the binary image. How can I do this?
