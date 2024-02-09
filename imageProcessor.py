@@ -11,10 +11,10 @@ def imageProcessor(img, framecnt):
     cv.imshow('video reader', img)
 
     #Defining region of interest, middle of image:
-    roi_x = img.shape[1] // 4  # Adjust as needed
+    roi_x = img.shape[1] // 2  # Adjust as needed
     roi_y = img.shape[0] // 2 # Adjust as needed
-    roi_width = img.shape[1] // 2  # Adjust as needed
-    roi_height = img.shape[0]# Adjust as needed
+    roi_width = img.shape[1] // 4  # Adjust as needed
+    roi_height = img.shape[0]//4# Adjust as needed
 
     #Applying ROI mask
     roi = img[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
@@ -30,7 +30,7 @@ def imageProcessor(img, framecnt):
     imgHue = imgHSV[:,:,2]
    
     #Apply initial binary mask using Saturation image channel
-    ret, mask = cv.threshold(imgHue, 50, 255, cv.THRESH_BINARY)
+    ret, mask = cv.threshold(imgSat, 70, 180, cv.THRESH_BINARY)
 
     #create structuring element and use it to perform opening mask
     disc = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7,7))
@@ -66,11 +66,11 @@ def imageProcessor(img, framecnt):
             cv.line(img_with_lines, (x1, y1), (x2, y2), (255, 255, 255), 2)
             #print(line)
     # Display images
-    #v.imshow('Original Image', img)
+    cv.imshow('Original Image', img)
     cv.imshow('Masked image', mask)        
     cv.imshow('Edge Detection', edges)
-    cv.imshow('Region of Interest', roi)
-    cv.imshow('Image with Lines', img_with_lines)
+    #cv.imshow('Region of Interest', roi)
+    #cv.imshow('Image with Lines', img_with_lines)
     #cv.imwrite('Frame_Dump/Frame_' + str(framecnt) + '.png', img_with_lines)
     cv.waitKey(100)
     #With Edge detection performed now we get the contour lines

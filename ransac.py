@@ -13,16 +13,16 @@ def ransac(img, threshold, max_iterations, min_inline):
     best_inliers = 0
     num_points = len(img)
     #Accumulator array
-    detected_lines = []
+    detected_circles= []
     for i in range(max_iterations):
         #pick two random sample points to get slope info
-        A_idx, B_idx, C_idx = np.random.randint(0, num_points, size=3)
-        A, B, C = img[A_idx], img[B_idx], img[C_idx]
-        sample = img[A]
-        #Check to ensure divide-by-zero does not occur
-        if sample[0, 0] == sample[1, 0]:
-            continue
+        sample_indices = np.random.choice(num_points, size=3, replace=False)
+        sample_points = np.column_stack(np.unravel_index(np.flatnonzero(img), img.shape))[sample_indices]
 
+        # Ensure the sampled points are distinct
+        if len(np.unique(sample_points, axis=0)) < 3:
+            continue
+        A, B, C = sample_points
         midABx, midABy = (A + B) / 2
         midBCx, midBCy = (B + C) / 2
 
@@ -39,26 +39,21 @@ def ransac(img, threshold, max_iterations, min_inline):
         centerX = (intMidBC - intMidAB)/(m_midAB - m_midBC)
         centerY = (m_midAB * centerX) -intMidAB
 
-        center = np.array[centerX, centerY]
+        center = np.array([centerX, centerY])
 
         diffradiusx, diffradiusy = center - A
 
         radius = np.sqrt((diffradiusx*diffradiusx)+(diffradiusy*diffradiusy))
         circumference = 2.0 * 3.14 * radius
 
-        #get straight line info from point to point y=mx+b
-        #x1, y1 = sample[0]
-        #x2, y2 = sample[1]
-        #m = (y2-y1)/(x2-x1)
-       # b = y1 - (m*x1)
 
         #Compute line distance
-        dist = np.sqrt()
+        dist = np.sqrt(np.sum((sample_points - center)**2) - radius)
         print(str(dist)+ ' px\n')
         #identify inliers
         inline = img[dist < threshold]
 
-        if len(inline >= min_inline):
-            detected_lines.append((m,b))
+        if len(inline) >= min_inline:
+            detected_circles.append((center,radius))
     
-    return detected_lines
+    return detected_circles
