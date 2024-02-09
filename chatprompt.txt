@@ -168,5 +168,5 @@ def ransac(img, threshold, max_iterations, min_inline):
     
     return detected_circles
 
-Can you use the above code without changing it too much to generate a working ransac circle finding algorithm
+    Rather than using the method above to detect circles I'd like to use the following equations to do the RANSAC circle detection:
     
