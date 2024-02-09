@@ -48,7 +48,7 @@ def imageProcessor(img, framecnt):
 
 
 
-    circs = ransac(edge_px, 0.05, 10, 5)
+    circs = ransac(edge_px, 1.0, 100, 10)
 
     # Create an empty image to draw lines
     img_with_circs = edges.copy()
