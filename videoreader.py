@@ -5,7 +5,7 @@ import os
 from imageProcessor import imageProcessor
 
 ## Import Sample video
-filename = "IMG_1087.mov"
+filename = "coin.mov"
 capture = cv.VideoCapture(filename)
 
 #frame counter initialization
@@ -34,4 +34,4 @@ while (capture.isOpened()):
 
 
 
-
+ 

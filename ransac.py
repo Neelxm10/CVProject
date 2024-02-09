@@ -11,7 +11,7 @@ def ransac(img, threshold, max_iterations, min_inline):
     #Preallocate variables
     best_fit = None
     best_inliers = 0
-    num_points = np.sum(img)
+    num_points = len(img)
     #Accumulator array
     detected_circles= []
     for i in range(max_iterations):
@@ -25,9 +25,11 @@ def ransac(img, threshold, max_iterations, min_inline):
 
         A, B, C = sample_points
 
-                # Check if the points are collinear (denominator is zero)
+        # Check if the points are collinear (denominator is zero)
         if (C[0] - B[0]) == 0:
             continue
+        
+        #calculate mid points of segments AB and BC
         midABx, midABy = (A + B) / 2
         midBCx, midBCy = (B + C) / 2
 
@@ -37,9 +39,10 @@ def ransac(img, threshold, max_iterations, min_inline):
         # Handle the case when the denominator is zero
             m_AB = 0  # or any other appropriate value or action
 
-        intAB = A[1] - m_AB * A[0]
+        #find the y intercept of AB
+        intAB = A[1] - (m_AB * A[0])
         m_BC = (C[1] - B[1]) / (C[0] - B[0])
-        intBC = B[1] - m_BC * B[0]
+        intBC = B[1] - (m_BC * B[0])
 
         m_midAB = -1.0*m_AB
         m_midBC = -1.0*m_BC
@@ -65,9 +68,16 @@ def ransac(img, threshold, max_iterations, min_inline):
         dist = np.sqrt(np.sum((sample_points - center)**2) - radius)
         #print(str(dist)+ ' px\n')
         #identify inliers
-        inline = img[dist < threshold]
+        inline = img[dist <= threshold]
+        for i in range(max_iterations):
+    # ... (your existing code)
+    
+            print(f"Iteration {i + 1}: Center = {center}, Radius = {radius}, Inliers = {len(inline)}")
         #print('test made it here \n')
-        if len(inline) >= min_inline:
-            detected_circles.append((center,radius))
-            print('made it in here\n')
-    return detected_circles
+        
+            if len(inline) > best_inliers:
+                best_inliers = len(inline)
+                best_fit = (center, radius)
+
+    # Return the best-fitting circle found during iterations
+    return best_fit
