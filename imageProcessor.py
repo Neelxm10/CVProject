@@ -11,16 +11,16 @@ def imageProcessor(img, framecnt):
     cv.imshow('video reader', img)
 
     #Defining region of interest, middle of image:
-    roi_x = img.shape[1] // 2  # Adjust as needed
-    roi_y = img.shape[0] // 2 # Adjust as needed
-    roi_width = img.shape[1] // 4  # Adjust as needed
-    roi_height = img.shape[0]//4# Adjust as needed
+ #   roi_x = img.shape[1] // 2  # Adjust as needed
+ #   roi_y = img.shape[0] // 2 # Adjust as needed
+ #   roi_width = img.shape[1] // 2  # Adjust as needed
+  #  roi_height = img.shape[0]// 2# Adjust as needed
 
     #Applying ROI mask
-    roi = img[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
+  #  roi = img[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
 
     #Convert to HSV and display HSV image frame by frame. 
-    imgHSV= cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+    imgHSV= cv.cvtColor(img, cv.COLOR_BGR2HSV)
    #Convert to grayscale
     imgHSVGS = cv.cvtColor(imgHSV, cv.COLOR_BGR2GRAY)
    
@@ -30,7 +30,7 @@ def imageProcessor(img, framecnt):
     imgHue = imgHSV[:,:,2]
    
     #Apply initial binary mask using Saturation image channel
-    ret, mask = cv.threshold(imgSat, 70, 180, cv.THRESH_BINARY)
+    ret, mask = cv.threshold(imgVal, 50, 255, cv.THRESH_BINARY)
 
     #create structuring element and use it to perform opening mask
     disc = cv.getStructuringElement(cv.MORPH_ELLIPSE, (7,7))
@@ -48,29 +48,24 @@ def imageProcessor(img, framecnt):
 
 
 
-    lines = ransac(edge_px, 0.05, 10, 5)
+    circs = ransac(edge_px, 0.05, 10, 5)
 
     # Create an empty image to draw lines
-    img_with_lines = edges.copy()
+    img_with_circs = edges.copy()
 
-    if lines is not None:
-        for line in lines:
-            m, b = line
-            x1 = 0
-            y1 = int(b)
-            x2 = img.shape[1] - 1  # Width of the image
-            y2 = int(m * x2 + b)
-                    # Ensure y1 and y2 are within the image boundaries
-            y1 = max(0, min(y1, roi.shape[0] - 1))
-            y2 = max(0, min(y2, roi.shape[0] - 1))
-            cv.line(img_with_lines, (x1, y1), (x2, y2), (255, 255, 255), 2)
-            #print(line)
+    for circ in circs:
+        center, radius = circ
+        #convert center to integer value
+        center = center.astype(int); 
+        radius = radius.astype(int);
+
+        cv.circle(img_with_circs, center, radius, (255,255,255), 2)
     # Display images
-    cv.imshow('Original Image', img)
+    cv.imshow('Original Image', imgVal)
     cv.imshow('Masked image', mask)        
     cv.imshow('Edge Detection', edges)
     #cv.imshow('Region of Interest', roi)
-    #cv.imshow('Image with Lines', img_with_lines)
+    cv.imshow('Image with Circles', img_with_circs)
     #cv.imwrite('Frame_Dump/Frame_' + str(framecnt) + '.png', img_with_lines)
     cv.waitKey(100)
     #With Edge detection performed now we get the contour lines

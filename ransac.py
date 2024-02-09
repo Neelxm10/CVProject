@@ -16,9 +16,11 @@ def ransac(img, threshold, max_iterations, min_inline):
     detected_circles= []
     for i in range(max_iterations):
         #pick two random sample points to get slope info
-        sample_indices = np.random.choice(num_points, size=3, replace=False)
+        sample_indices = np.random.randint(0,num_points, size=3)
         sample_points = np.column_stack(np.unravel_index(np.flatnonzero(img), img.shape))[sample_indices]
 
+        if num_points < 3:
+            continue
         # Ensure the sampled points are distinct
         if len(np.unique(sample_points, axis=0)) < 3:
             continue
@@ -49,7 +51,7 @@ def ransac(img, threshold, max_iterations, min_inline):
 
         #Compute line distance
         dist = np.sqrt(np.sum((sample_points - center)**2) - radius)
-        print(str(dist)+ ' px\n')
+        
         #identify inliers
         inline = img[dist < threshold]
 
