@@ -7,7 +7,7 @@ from ransac import ransac
 #Currently converts image to HSV to test functionality. We can build algorithm here.
 
 def imageProcessor(img, framecnt):
-    print('processing image...\n')
+    
     #show the original image
     cv.imshow('video reader', img)
 
@@ -51,6 +51,6 @@ def imageProcessor(img, framecnt):
 
     edge_px = np.column_stack(np.where(edges>0))
     
-    circs = ransac(edges, 200, 10000, 3)
+    circs = ransac(edges, 50, 100, 3)
     cv.waitKey(10)
 cv.destroyAllWindows()

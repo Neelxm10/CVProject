@@ -2,9 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cv2 as cv
 #img = binary image with only edges
-#threshold = depends on noise level in the image, the lower the stricter it is
+#threshold = pixel length threshold
 #max_iterations = how many times you want the algo to repeat
-#min_inline = the minimum number of lines that need to intersect for a line to be valid
+#min_inline = the minimum number of edge points that need to be fit to be a circle
+
 
 
 
@@ -37,7 +38,11 @@ def ransac(img, threshold, max_iterations, min_inline):
         a_idx = np.clip(a.astype(int), 0, img.shape[1] - 1)
         b_idx = np.clip(b.astype(int), 0, img.shape[0] - 1)
         accumulator[a_idx, b_idx] += 1
-
+        # Convert accumulator to np.uint8 for dilation
+        accumulator_uint8 = cv.convertScaleAbs(accumulator)
+        local_max = cv.dilate(accumulator_uint8, np.ones((3,3)))
+        lmax_mask = (local_max == accumulator_uint8)
+        accumulator *= lmax_mask
         # Find the maximum value (peak) and its index in the accumulator array
         max_value = accumulator[0, 0]
         max_coords = (0, 0)
@@ -53,23 +58,23 @@ def ransac(img, threshold, max_iterations, min_inline):
         Center = (max_coords[1], max_coords[0])
 
         # Count inliers by checking the number of edge points inside the circle
-        inliers = 0
-        for k in th:
-            x = int(Center[0] + radius * np.cos(k))
-            y = int(Center[1] + radius * np.sin(k))
-            # Ensure indices are within image bounds
-            x = np.clip(x, 0, img.shape[1] - 1)
-            y = np.clip(y, 0, img.shape[0] - 1)
-            if img[y, x] > 0:
-                inliers += 1
+     #   inliers = 0
+      #  for k in th:
+       #     x = int(Center[0] + radius * np.cos(k))
+        #    y = int(Center[1] + radius * np.sin(k))
+         #   # Ensure indices are within image bounds
+          #  x = np.clip(x, 0, img.shape[1] - 1)
+           # y = np.clip(y, 0, img.shape[0] - 1)
+            #if img[y, x] > 0:
+             #   inliers += 1
 
         #User defines minimum number of edge points to be fit
-        if inliers > min_inline:
+        #if inliers > min_inline:
             # If enough inliers, adjust threshold dynamically
-            threshold *= 0.9  # You can adjust this scaling factor based on your needs
-        else:
+         #   threshold *= 0.9  # You can adjust this scaling factor based on your needs
+        #else:
             # If not enough inliers, increase threshold
-            threshold *= 1.1
+         #   threshold *= 1.1
         
         if radius <= threshold:
             #draw circle

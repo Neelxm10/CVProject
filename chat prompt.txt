@@ -1,33 +1,179 @@
-        x = c[1] + r * np.cos(th)
-        y = c[0] + r * np.sin(th)
+This is my program:
+import cv2 as cv
+from matplotlib import pyplot as py
+import numpy as np
+import os
+from imageProcessor import imageProcessor
 
-        # Ensure accumulator indices are within image bounds
-        x_indices = np.clip(x.astype(int), 0, img.shape[1]-1)
-        y_indices = np.clip(y.astype(int), 0, img.shape[0]-1)
+## Import Sample video
+filename = "videos/coin.mov"
+capture = cv.VideoCapture(filename)
+
+#frame counter initialization
+framecnt = 0
+#make a directory called frame dump
+if not os.path.exists:
+    os.mkdir('Frame_Dump')
+else:
+    print("Directory already exists, proceeding with overwriting directory\n")
+#while the video capture bit is true
+while (capture.isOpened()):
+    #store the state whether there is a frame or not, and record the frame data
+    state,frame = capture.read()
+    #if state is true (state == 1), process the image
+    if state:
+        framecnt+=1
+        imageProcessor(frame,framecnt)
+        print('FrameCount:'+str(framecnt)+'\n')
         
-        # Store in accumulator array and update
-        accumulator[y_indices, x_indices] += 1
-        
-        # Find the coordinates corresponding to the maximum value
-        max_coords = np.argwhere(accumulator == np.max(accumulator))[0]
-        
-        # Calculate radius based on the randomly sampled edge points and maximum coordinates
-        radius = np.mean(np.sqrt((xi - max_coords[1])**2 + (yi - max_coords[0])**2))
-        
-        # Use max_coords and radius to draw a circle
-        center = (max_coords[1], max_coords[0])  # Swap x and y for OpenCV coordinate system
+    #other wise end the program (if there is no frame, state == 0)  
+    else:
+        print("No remaining frames to process\n") 
+        break
+
+
+import cv2 as cv
+from matplotlib import pyplot as plt
+import numpy as np
+import os
+from ransac import ransac
+
+#Currently converts image to HSV to test functionality. We can build algorithm here.
+
+def imageProcessor(img, framecnt):
+    
+    #show the original image
+    cv.imshow('video reader', img)
+
+    height, width = img.shape[:2]
+
+# Define the ROI parameters
+    roi_y = height // 3  # Start from one-third of the height
+    roi_height = height * 2 // 2  # Take the bottom two-thirds of the height
+
+# Applying ROI mask
+    roi = img[roi_y:roi_y + roi_height, :]
+
+# Convert BGR image to HSV
+    imgHSV = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
+
+# Extract individual channels
+    imgHue = imgHSV[:, :, 0]
+    imgSat = imgHSV[:, :, 1]
+    imgVal = imgHSV[:, :, 2]
+
+# Convert individual channels to grayscale
+
+    #Apply initial binary mask using Saturation image channel
+    ret, mask = cv.threshold(imgSat, 70, 220, cv.THRESH_BINARY)
+  
+    #create structuring element and use it to perform opening mask
+    disc = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+    
+    #dilate, erode, and dilate again.
+    eroded_mask = cv.erode(mask, disc,100)
+    dilated_mask = cv.dilate(eroded_mask, disc, iterations = 100)
+    
+    #additional filtering
+    avgkernel = np.ones((3,3),np.float32)/(9)
+    meanfiltered = cv.filter2D(eroded_mask, -1, avgkernel)
+    gaussfiltered = cv.GaussianBlur(meanfiltered, (31,31), 5)
+
+
+    #Subtract dilated mask from initial binary mask to retreive only the edges
+    edges = cv.absdiff(mask, gaussfiltered)
+
+    edge_px = np.column_stack(np.where(edges>0))
+    
+    circs = ransac(edges, 200, 100, 3)
+    cv.waitKey(10)
+cv.destroyAllWindows()
+import numpy as np
+from matplotlib import pyplot as plt
+import cv2 as cv
+#img = binary image with only edges
+#threshold = pixel length threshold
+#max_iterations = how many times you want the algo to repeat
+#min_inline = the minimum number of edge points that need to be fit to be a circle
+
+
+
+
+def ransac(img, threshold, max_iterations, min_inline):
+    #Preallocate variables
+    best_fit = None
+    best_inliers = 0
+    num_points = np.column_stack(np.where(img > 0))
+    # Accumulator array
+    accumulator = np.zeros_like(img, dtype=int)
+    for i in range(max_iterations):
+        #pick three random sample points to get slope info
+        sample_index = np.random.choice(len(num_points)-1)
+        xi, yi = num_points[sample_index]
+    
+        #print("Random px coords: x: "+str(xi)+",  y: "+str(yi)+" (px)\n")
+
+        # Ensure the sampled points are distinct
+        th = np.arange(0, 2*np.pi, 0.01)
+
+        #Make the randomly sampled points the center and build radius off center
+        c = np.array([np.mean(xi), np.mean(yi)])
+        r = np.mean(np.sqrt((xi - np.mean(xi))**2 + (yi - np.mean(yi))**2))
+
+        #in image space a,b is the center of the circle. In parameter space, it will be the circular edge coordiantes
+        a = c[0] + (r * np.cos(th))
+        b = c[1] + (r * np.sin(th))
+
+        #for the accumulator array we ensure index bounds do not exceed image size
+        a_idx = np.clip(a.astype(int), 0, img.shape[1] - 1)
+        b_idx = np.clip(b.astype(int), 0, img.shape[0] - 1)
+        accumulator[a_idx, b_idx] += 1
+
+        # Find the maximum value (peak) and its index in the accumulator array
+        max_value = accumulator[0, 0]
+        max_coords = (0, 0)
+        for i in range(accumulator.shape[0]):
+            for j in range(accumulator.shape[1]):
+                if accumulator[i, j] > max_value:
+                    max_value = accumulator[i, j]
+                    max_coords = (i, j)
+
+
+      # Calculate radius based on the randomly sampled edge points and maximum coordinates
+        radius = np.mean(np.sqrt((xi - max_coords[0])**2 + (yi - max_coords[1])**2))
+        Center = (max_coords[1], max_coords[0])
+
+        # Count inliers by checking the number of edge points inside the circle
+        inliers = 0
+        for k in th:
+            x = int(Center[0] + radius * np.cos(k))
+            y = int(Center[1] + radius * np.sin(k))
+            # Ensure indices are within image bounds
+            x = np.clip(x, 0, img.shape[1] - 1)
+            y = np.clip(y, 0, img.shape[0] - 1)
+            if img[y, x] > 0:
+                inliers += 1
+
+        #User defines minimum number of edge points to be fit
+        if inliers > min_inline:
+            # If enough inliers, adjust threshold dynamically
+            threshold *= 0.9  # You can adjust this scaling factor based on your needs
+        else:
+            # If not enough inliers, increase threshold
+            threshold *= 1.1
         
         if radius <= threshold:
-            # Draw a circle on the image
-            img_with_circle = img.copy()
-            cv.circle(img_with_circle, center, int(radius), (255, 255, 255), 2)
-            
-            # Map center and radius back to image space
-            center_image_space = (center[0], center[1])  # No need to swap x and y
-            radius_image_space = radius
-            
-            # Display the image with the circle
-            cv.imshow('Image with Circle', img_with_circle)
+            #draw circle
+            circ = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+            #print(f"Found Circle with radius {radius} px and center {Center}")
+            cv.circle(circ, Center, int(radius), [0, 255, 0], 2)
+            cv.circle(circ, Center, 5, [0, 0, 255], -1)  # Draw center in green
+            cv.imshow('Object Tracker', circ)
             cv.waitKey(20)
         else:
             continue
+How do I get it to run faster?
+
+
+
+ 
