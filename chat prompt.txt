@@ -1,0 +1,33 @@
+        x = c[1] + r * np.cos(th)
+        y = c[0] + r * np.sin(th)
+
+        # Ensure accumulator indices are within image bounds
+        x_indices = np.clip(x.astype(int), 0, img.shape[1]-1)
+        y_indices = np.clip(y.astype(int), 0, img.shape[0]-1)
+        
+        # Store in accumulator array and update
+        accumulator[y_indices, x_indices] += 1
+        
+        # Find the coordinates corresponding to the maximum value
+        max_coords = np.argwhere(accumulator == np.max(accumulator))[0]
+        
+        # Calculate radius based on the randomly sampled edge points and maximum coordinates
+        radius = np.mean(np.sqrt((xi - max_coords[1])**2 + (yi - max_coords[0])**2))
+        
+        # Use max_coords and radius to draw a circle
+        center = (max_coords[1], max_coords[0])  # Swap x and y for OpenCV coordinate system
+        
+        if radius <= threshold:
+            # Draw a circle on the image
+            img_with_circle = img.copy()
+            cv.circle(img_with_circle, center, int(radius), (255, 255, 255), 2)
+            
+            # Map center and radius back to image space
+            center_image_space = (center[0], center[1])  # No need to swap x and y
+            radius_image_space = radius
+            
+            # Display the image with the circle
+            cv.imshow('Image with Circle', img_with_circle)
+            cv.waitKey(20)
+        else:
+            continue
