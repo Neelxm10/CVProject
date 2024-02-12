@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2 as cv
+
+
 #img = binary image with only edges
 #threshold = pixel length threshold
 #max_iterations = how many times you want the algo to repeat
@@ -13,11 +15,12 @@ def ransac(img, threshold, max_iterations, min_inline):
     #Preallocate variables
     best_fit = None
     best_inliers = 0
+
     num_points = np.column_stack(np.where(img > 0))
     # Accumulator array
     accumulator = np.zeros_like(img, dtype=int)
     for i in range(max_iterations):
-        #pick three random sample points to get slope info
+        #pick sample point
         sample_index = np.random.choice(len(num_points)-1)
         xi, yi = num_points[sample_index]
     
@@ -40,7 +43,7 @@ def ransac(img, threshold, max_iterations, min_inline):
         accumulator[a_idx, b_idx] += 1
         # Convert accumulator to np.uint8 for dilation
         accumulator_uint8 = cv.convertScaleAbs(accumulator)
-        local_max = cv.dilate(accumulator_uint8, np.ones((3,3)))
+        local_max = cv.dilate(accumulator_uint8, np.ones((3,3)), 3)
         lmax_mask = (local_max == accumulator_uint8)
         accumulator *= lmax_mask
         # Find the maximum value (peak) and its index in the accumulator array
@@ -58,23 +61,23 @@ def ransac(img, threshold, max_iterations, min_inline):
         Center = (max_coords[1], max_coords[0])
 
         # Count inliers by checking the number of edge points inside the circle
-     #   inliers = 0
-      #  for k in th:
-       #     x = int(Center[0] + radius * np.cos(k))
-        #    y = int(Center[1] + radius * np.sin(k))
-         #   # Ensure indices are within image bounds
-          #  x = np.clip(x, 0, img.shape[1] - 1)
-           # y = np.clip(y, 0, img.shape[0] - 1)
-            #if img[y, x] > 0:
-             #   inliers += 1
+        inliers = 0
+        for k in th:
+            x = int(Center[0] + radius * np.cos(k))
+            y = int(Center[1] + radius * np.sin(k))
+            # Ensure indices are within image bounds
+            x = np.clip(x, 0, img.shape[1] - 1)
+            y = np.clip(y, 0, img.shape[0] - 1)
+            if img[y, x] > 0:
+                inliers += 1
 
         #User defines minimum number of edge points to be fit
-        #if inliers > min_inline:
+        if inliers > min_inline:
             # If enough inliers, adjust threshold dynamically
-         #   threshold *= 0.9  # You can adjust this scaling factor based on your needs
-        #else:
-            # If not enough inliers, increase threshold
-         #   threshold *= 1.1
+            threshold *= 0.9  # You can adjust this scaling factor based on your needs
+        else:
+        # If not enough inliers, increase threshold
+            threshold *= 1.1
         
         if radius <= threshold:
             #draw circle
@@ -82,7 +85,10 @@ def ransac(img, threshold, max_iterations, min_inline):
             #print(f"Found Circle with radius {radius} px and center {Center}")
             cv.circle(circ, Center, int(radius), [0, 255, 0], 2)
             cv.circle(circ, Center, 5, [0, 0, 255], -1)  # Draw center in green
+            # Add text box displaying center coordinates
+            cv.putText(circ, f'Center: ({Center[0]}, {Center[1]})', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
             cv.imshow('Object Tracker', circ)
             cv.waitKey(20)
         else:
             continue
+    return Center, radius
