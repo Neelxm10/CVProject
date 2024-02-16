@@ -1,8 +1,15 @@
+#The purpose of this code is to monitor and identify objects in a video stream using an image processing pipeline. 
+#The original image is first shown, followed by the definition of a region of interest (ROI) inside the image. 
+#The saturation channel is the main focus of the ROI extraction and conversion to the HSV colour system. 
+#Areas of interest are first isolated using binary masking, and then noise is reduced by erosion and dilation procedures. 
+#Gaussian blurring and averaging are used for additional filtering. To remove edges, the dilated mask is then subtracted from the original binary mask. 
+#Circles within the edge-discovered picture circle are detected using the RANSAC method.
 import cv2 as cv
 from matplotlib import pyplot as plt
 import numpy as np
 import os
 from ransac import ransac
+import csv
 
 #Currently converts image to HSV to test functionality. We can build algorithm here.
 
@@ -20,23 +27,16 @@ def imageProcessor(img, framecnt):
 # Applying ROI mask
     roi = img[roi_y:roi_y + roi_height, :]
 
-# Convert BGR image to HSV
+# Convert BGR image to HSV and Extract individual channels that we want to use(Sat)
     imgHSV = cv.cvtColor(roi, cv.COLOR_BGR2HSV)
 
-# Extract individual channels
-    imgHue = imgHSV[:, :, 0]
     imgSat = imgHSV[:, :, 1]
-    imgVal = imgHSV[:, :, 2]
 
-# Convert individual channels to grayscale
 
-    #Apply initial binary mask using Saturation image channel
+    #Apply initial binary mask using Saturation image channel and create a disk for masking
     ret, mask = cv.threshold(imgSat, 70, 220, cv.THRESH_BINARY)
-  
-    #create structuring element and use it to perform opening mask
     disc = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
     
-    #dilate, erode, and dilate again.
     eroded_mask = cv.erode(mask, disc,100)
     dilated_mask = cv.dilate(eroded_mask, disc, iterations = 100)
     
@@ -49,9 +49,21 @@ def imageProcessor(img, framecnt):
     #Subtract dilated mask from initial binary mask to retreive only the edges
     edges = cv.absdiff(mask, gaussfiltered)
 
-    edge_px = np.column_stack(np.where(edges>0))
+    #edge_px = np.column_stack(np.where(edges>0))
     
-    Centers, radius = ransac(edges, 150, 50, 2)
-    #print(f"center: {Centers} and radius {radius}")
+    Centre, radius= ransac(edges, 150, 50, 2)
+    
+    
+# Print the values in the same line by frame 
+    print(f"Frame: {framecnt}, Center : {Centre}")
+
+
+#track Object based on the center point using CSRT method
+  #  tracker = cv.TrackerCSRT_create()
+  #  tracker.init(img, Centre)
+
     cv.waitKey(10)
 cv.destroyAllWindows()
+
+
+

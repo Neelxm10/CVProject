@@ -1,30 +1,35 @@
+#The RANSAC technique for identifying circles in a picture is implemented by this code.   
+#Iteratively taking samples of points from the image's edge pixels,
+# it fits circles to these samples, fine-tuning the circle parameters according to the quantity of inliers discovered.
+#Votes for circle parameters are accumulated by the accumulator array, and the identified circle is indicated by the maximum peak. If the number of inliers is more than a minimum threshold,
+# the algorithm dynamically modifies the threshold for circle fitting and draws the detected circle on the picture.
 import numpy as np
 from matplotlib import pyplot as plt
 import cv2 as cv
 
-
+image = cv.imread('coin_dimlight.jpg')
 #img = binary image with only edges
 #threshold = pixel length threshold
 #max_iterations = how many times you want the algo to repeat
 #min_inline = the minimum number of edge points that need to be fit to be a circle
 
-
-
-
 def ransac(img, threshold, max_iterations, min_inline):
-    #Preallocate variables
-    best_fit = None
-    best_inliers = 0
+   
 
-    num_points = np.column_stack(np.where(img > 0))
+    num_points = np.column_stack(np.where(img > 0))# extracts the edges soo like non zeros points 
     # Accumulator array
-    accumulator = np.zeros_like(img, dtype=int)
+    accumulator = np.zeros_like(img, dtype=int) #accumulate votes 
     for i in range(max_iterations):
-        #pick sample point
-        sample_index = np.random.choice(len(num_points)-1)
-        xi, yi = num_points[sample_index]
-    
-        #print("Random px coords: x: "+str(xi)+",  y: "+str(yi)+" (px)\n")
+        #pick sample point, instead of 3 
+       
+        # sample_index = np.random.choice(len(num_points)-1)
+        # xi, yi = num_points[sample_index]
+        sample_indices = np.random.choice(len(num_points), size=3, replace=False)
+        sample_points = num_points[sample_indices]
+
+        # Ensure the sampled points are distinct
+        xi, yi = sample_points[:, 0], sample_points[:, 1]
+
 
         # Ensure the sampled points are distinct
         th = np.arange(0, 2*np.pi, 0.01)
@@ -38,14 +43,14 @@ def ransac(img, threshold, max_iterations, min_inline):
         b = c[1] + (r * np.sin(th))
 
         #for the accumulator array we ensure index bounds do not exceed image size
-        a_idx = np.clip(a.astype(int), 0, img.shape[1] - 1)
+        a_idx = np.clip(a.astype(int), 0, img.shape[1] - 1) #convert a and b to int and clip to be sure theyre are within bounds
         b_idx = np.clip(b.astype(int), 0, img.shape[0] - 1)
-        accumulator[a_idx, b_idx] += 1
-        # Convert accumulator to np.uint8 for dilation
+        accumulator[a_idx, b_idx] += 1 #increment acc array corresponding along the circle
+        # Convert accumulator to np.uint8 for dilation  , and looking for the max
         accumulator_uint8 = cv.convertScaleAbs(accumulator)
         local_max = cv.dilate(accumulator_uint8, np.ones((3,3)), 3)
-        lmax_mask = (local_max == accumulator_uint8)
-        accumulator *= lmax_mask
+        lmax_mask = (local_max == accumulator_uint8)#position in acc
+        accumulator *= lmax_mask #update
         # Find the maximum value (peak) and its index in the accumulator array
         max_value = accumulator[0, 0]
         max_coords = (0, 0)
@@ -92,3 +97,6 @@ def ransac(img, threshold, max_iterations, min_inline):
         else:
             continue
     return Center, radius
+
+Centre, radius= ransac(image, 150, 50, 2)
+
