@@ -38,20 +38,21 @@ def imageProcessor(img, framecnt):
     
     #dilate, erode, and dilate again.
     eroded_mask = cv.erode(mask, disc,100)
-    dilated_mask = cv.dilate(eroded_mask, disc, iterations = 100)
+    dilated_mask = cv.dilate(eroded_mask, disc, iterations = 7)
     
     #additional filtering
     avgkernel = np.ones((3,3),np.float32)/(9)
-    meanfiltered = cv.filter2D(eroded_mask, -1, avgkernel)
-    gaussfiltered = cv.GaussianBlur(meanfiltered, (31,31), 5)
+    meanfiltered = cv.filter2D(dilated_mask, -1, avgkernel)
+    gaussfiltered = cv.GaussianBlur(meanfiltered, (31,31), 6)
 
 
     #Subtract dilated mask from initial binary mask to retreive only the edges
     edges = cv.absdiff(mask, gaussfiltered)
-
+    #edges = cv.Canny(meanfiltered, 100, 200)
+    cv.imshow('edges', edges)
     edge_px = np.column_stack(np.where(edges>0))
     
-    Centers, radius = ransac(edges,100, 1200, 7, framecnt)
+    Centers = ransac(edges,70, 20, 250, 200)
     #print(f"center: {Centers} and radius {radius}")
     cv.waitKey(10)
 cv.destroyAllWindows()
