@@ -51,7 +51,7 @@ def imageProcessor(img, framecnt):
 
     edge_px = np.column_stack(np.where(edges>0))
     
-    Centers, radius = ransac(edges, 150, 50, 2)
+    Centers, radius = ransac(edges,100, 1200, 7, framecnt)
     #print(f"center: {Centers} and radius {radius}")
     cv.waitKey(10)
 cv.destroyAllWindows()

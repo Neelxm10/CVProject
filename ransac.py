@@ -11,19 +11,19 @@ import cv2 as cv
 
 
 
-def ransac(img, threshold, max_iterations, min_inline):
+def ransac(img, threshold, max_iterations, min_inline, framecnt):
     #Preallocate variables
     best_fit = None
     best_inliers = 0
-
+    #
     num_points = np.column_stack(np.where(img > 0))
     # Accumulator array
     accumulator = np.zeros_like(img, dtype=int)
     for i in range(max_iterations):
         #pick sample point
-        sample_index = np.random.choice(len(num_points)-1)
-        xi, yi = num_points[sample_index]
-    
+        sample_index = np.random.choice(len(num_points), size=24)
+        sample_points = num_points[sample_index]
+        xi, yi = sample_points[:, 0], sample_points[:, 1]
         #print("Random px coords: x: "+str(xi)+",  y: "+str(yi)+" (px)\n")
 
         # Ensure the sampled points are distinct
@@ -41,19 +41,21 @@ def ransac(img, threshold, max_iterations, min_inline):
         a_idx = np.clip(a.astype(int), 0, img.shape[1] - 1)
         b_idx = np.clip(b.astype(int), 0, img.shape[0] - 1)
         accumulator[a_idx, b_idx] += 1
-        # Convert accumulator to np.uint8 for dilation
+        # Convert accumulator to np.uint8 for dilation (non maximal supression)
         accumulator_uint8 = cv.convertScaleAbs(accumulator)
         local_max = cv.dilate(accumulator_uint8, np.ones((3,3)), 3)
         lmax_mask = (local_max == accumulator_uint8)
         accumulator *= lmax_mask
         # Find the maximum value (peak) and its index in the accumulator array
-        max_value = accumulator[0, 0]
-        max_coords = (0, 0)
-        for i in range(accumulator.shape[0]):
-            for j in range(accumulator.shape[1]):
-                if accumulator[i, j] > max_value:
-                    max_value = accumulator[i, j]
-                    max_coords = (i, j)
+        #max_value = accumulator[0, 0]
+        #max_coords = (0, 0)
+        #for i in range(accumulator.shape[0]):
+         #   for j in range(accumulator.shape[1]):
+          #      if accumulator[i, j] > max_value:
+           #         max_value = accumulator[i, j]
+            #        max_coords = (i, j)
+         # Find the maximum value (peak) and its index in the accumulator array
+        max_coords = np.unravel_index(accumulator.argmax(), accumulator.shape)
 
 
       # Calculate radius based on the randomly sampled edge points and maximum coordinates
@@ -88,7 +90,8 @@ def ransac(img, threshold, max_iterations, min_inline):
             # Add text box displaying center coordinates
             cv.putText(circ, f'Center: ({Center[0]}, {Center[1]})', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
             cv.imshow('Object Tracker', circ)
-            cv.waitKey(20)
+            cv.imwrite(f"Frame_Dump/frame_{framecnt}.png", circ)
+            cv.waitKey(10)
         else:
             continue
     return Center, radius
