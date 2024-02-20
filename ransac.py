@@ -70,7 +70,7 @@ def ransac(img, threshold, max_iterations, min_inline):
     #if the circle meets the criteria for a valid circle (minimum inliers, radius within threshold, and more inliers than the current best),
     #update the best circle if needed
         if inliers >= min_inline and radius <= threshold and inliers > max_inliers:
-            print(f"Found Circle with radius {radius} px and center {center}")
+            #print(f"Found Circle with radius {radius} px and center {center}")
             best_circle = (center, radius)
             max_inliers = inliers
 
@@ -85,7 +85,7 @@ def ransac(img, threshold, max_iterations, min_inline):
 
         cv.imshow('Best Circle', circ)
         cv.imwrite("Best_Circle_Detected.png", circ)
-        cv.waitKey(20)
+        cv.waitKey(10)
         cv.destroyAllWindows()
     else:
         print("No circles found")
