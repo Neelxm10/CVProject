@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-def ransac(img, threshold, max_iterations, min_inline):
+def ransac(img, threshold, max_iterations, min_inline, framecnt):
     #Collect number of edge points
     num_points = np.column_stack(np.where(img > 0))
 
@@ -84,7 +84,7 @@ def ransac(img, threshold, max_iterations, min_inline):
                    (0, 255, 255), 2)
 
         cv.imshow('Best Circle', circ)
-        cv.imwrite("Best_Circle_Detected.png", circ)
+        cv.imwrite(f"Frame_Dump/Best_Circle_Detected{framecnt}.png", circ)
         cv.waitKey(10)
         
     else:
