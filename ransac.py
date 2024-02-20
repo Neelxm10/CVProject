@@ -29,7 +29,7 @@ def ransac(img, threshold, max_iterations, min_inline):
         r = np.mean(np.sqrt((xi - c[0]) ** 2 + (yi - c[1]) ** 2))
 
         #ensure that the sampled circles are within image bounds.
-        if 0 <= c[0] < img.shape[1] and 0 <= c[1] < img.shape[0] and 0 < r < min(img.shape[0], img.shape[1]) / 2:
+        if c[0] < img.shape[1] and  c[1] < img.shape[0] and 0 < r < min(img.shape[0], img.shape[1]) / 2:
             #in image space, a and b are the center of the circle. In parameter space, it will be the circular edge coordinates with distinct sample points.
             th = np.arange(0, 2 * np.pi, 0.01)
             a = c[0] + (r * np.cos(th))
