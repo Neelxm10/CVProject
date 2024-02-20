@@ -86,7 +86,7 @@ def ransac(img, threshold, max_iterations, min_inline):
         cv.imshow('Best Circle', circ)
         cv.imwrite("Best_Circle_Detected.png", circ)
         cv.waitKey(10)
-        cv.destroyAllWindows()
+        
     else:
         print("No circles found")
 

@@ -24,7 +24,7 @@ def imageProcessor(img, framecnt):
 
 # Convert the image to grayscale
     gray_img = cv.cvtColor(roi, cv.COLOR_BGR2GRAY)
-    cv.imshow('region of interest', gray_img)
+    #cv.imshow('region of interest', gray_img)
 # Ensure that the image is of type CV_8UC1
     if gray_img.dtype != np.uint8:
         gray_img = cv.convertScaleAbs(gray_img)
@@ -47,10 +47,11 @@ def imageProcessor(img, framecnt):
 
     Circle = ransac(edges,350, 3000,10)
 
-
+    cv.waitKey(200)
     if Circle is not None:
         return Circle[0]  # Return only the center coordinates (x, y)
     else:
-        return None  # Return None when no circle is found
-    cv.waitKey(20)
-cv.destroyAllWindows()
+        return 0,0  # Return None when no circle is found
+        
+   
+    

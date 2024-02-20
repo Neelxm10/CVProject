@@ -20,8 +20,8 @@ else:
     print("Directory already exists, proceeding with overwriting directory\n")
 
 frame_count_list = []
-center_x_list = []  # Make sure this list is defined
-
+center_xlist = []  
+center_ylist = []
 plt.ion()  # Turn on interactive mode
 
 try:
@@ -29,18 +29,20 @@ try:
         state, frame = capture.read()
         if state:
             framecnt += 1
-            center_x = imageProcessor(frame, framecnt)
+            centerX, centerY = imageProcessor(frame, framecnt)
 
             # If center x-coordinate is found, append it to the list
-            if center_x is not None:
+            if centerX and centerY is not None:
                 frame_count_list.append(framecnt)
-                center_x_list.append(center_x)
-
-                # Plot the center x-coordinate with respect to frame count
+                center_xlist.append(centerX)
+                center_ylist.append(centerY)
+                # Plot the center coordinates with respect to frame count
                 plt.clf()  # Clear the previous plot
-                plt.plot(frame_count_list, center_x_list, label='Center X Coordinate', marker='o', linestyle='-')
+                plt.plot(frame_count_list, center_xlist, label='Center X Coordinate', marker='o', linestyle='-')
+                plt.plot(frame_count_list, center_ylist, label='Center Y Coordinate', marker='o', linestyle='-')
                 plt.xlabel('Frame Count')
                 plt.ylabel('Center Position')
+                plt.legend()
                 plt.title('Center Position over Frame Count')
                 plt.draw()
                 plt.pause(0.1)  # Adjust the pause duration as needed
