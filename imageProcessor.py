@@ -45,7 +45,7 @@ def imageProcessor(img, framecnt):
     edges = cv.Canny(dilated_mask, 0, 220)
     #cv.imshow('edges', edges)
 
-    Circle = ransac(edges,350, 3000,10, framecnt)
+    Circle = ransac(edges,350, 3000,10, framecnt, roi)
 
     cv.waitKey(200)
     if Circle is not None:

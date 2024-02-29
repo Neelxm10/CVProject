@@ -1,7 +1,7 @@
 import cv2 as cv
 import numpy as np
 
-def ransac(img, threshold, max_iterations, min_inline, framecnt):
+def ransac(img, threshold, max_iterations, min_inline, framecnt, orig):
     #Collect number of edge points
     num_points = np.column_stack(np.where(img > 0))
 
@@ -77,7 +77,7 @@ def ransac(img, threshold, max_iterations, min_inline, framecnt):
     #if there is a best circle detected that satisfies all aformentioned criteria, visualize it and save it as an image. 
     if best_circle is not None:
         # Visualize the best circle
-        circ = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+        circ = orig.copy()
         cv.circle(circ, best_circle[0], int(best_circle[1]), [0, 255, 0], 2)
         cv.circle(circ, best_circle[0], 5, [0, 0, 255], -1)
         cv.putText(circ, f'Center: ({best_circle[0][0]}, {best_circle[0][1]})', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1,
