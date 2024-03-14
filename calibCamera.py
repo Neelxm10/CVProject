@@ -18,9 +18,9 @@ objPArray = []
 imgPArray = []
 
 images = glob.glob('calibration_images/*.jpg')
-win_name="Verify"
-cv.namedWindow(win_name, cv.WND_PROP_FULLSCREEN)
-cv.setWindowProperty(win_name,cv.WND_PROP_FULLSCREEN,cv.WINDOW_FULLSCREEN)
+#win_name="Verify"
+#cv.namedWindow(win_name, cv.WND_PROP_FULLSCREEN)
+#cv.setWindowProperty(win_name,cv.WND_PROP_FULLSCREEN,cv.WINDOW_FULLSCREEN)
 for fname in images:
     img = cv.imread(fname)
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -28,14 +28,23 @@ for fname in images:
     ret, corners = cv.findChessboardCorners(gray, (9,6), None)
     # If found, add object points, image points (after refining them)
     if ret == True:
+        # Refine the corners
+        corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), crit)
+        # Append the object points for this image
         objPArray.append(objPoints)
-        corners2=cv.cornerSubPix(gray,corners, (11,11), (-1,-1), crit)
         imgPArray.append(corners)
         # Draw and display the corners
         cv.drawChessboardCorners(img, (9,6), corners2, ret)
-        cv.imshow(win_name, img)
-        cv.waitKey(500)
+        img = cv.resize(img, (500,500))
+        cv.imshow("verify", img)
+    cv.waitKey(1500)
         
 imgMod = img       
 cv.destroyAllWindows()
-ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objPoints, imgPArray, gray.shape[::-1], None, None)
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objPArray, imgPArray, gray.shape[::-1], None, None)
+print(mtx)
+#print(dist)
+#print(rvecs)
+#print(tvecs)
+h,  w = img.shape[:2]
+newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
