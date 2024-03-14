@@ -1,0 +1,41 @@
+import cv2 as cv
+import numpy as np
+from matplotlib import pyplot as plt
+import glob
+
+#PREWORK 
+
+#kmeans clustering for determining corners
+crit = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 50, 0.001)
+
+# Prepare object points in 3D space (pre-allocate based on checkerboard)
+objPoints = np.zeros((6*9, 3), np.float32)
+# Create a mesh grid based on checkerboard dimensions and flatten into a 2D array
+objPoints[:,:2] = np.mgrid[0:9, 0:6].T.reshape(-1,2)
+
+#now preallocate memory for object points and image points
+objPArray = []
+imgPArray = []
+
+images = glob.glob('calibration_images/*.jpg')
+win_name="Verify"
+cv.namedWindow(win_name, cv.WND_PROP_FULLSCREEN)
+cv.setWindowProperty(win_name,cv.WND_PROP_FULLSCREEN,cv.WINDOW_FULLSCREEN)
+for fname in images:
+    img = cv.imread(fname)
+    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    # Find the chess board corners
+    ret, corners = cv.findChessboardCorners(gray, (9,6), None)
+    # If found, add object points, image points (after refining them)
+    if ret == True:
+        objPArray.append(objPoints)
+        corners2=cv.cornerSubPix(gray,corners, (11,11), (-1,-1), crit)
+        imgPArray.append(corners)
+        # Draw and display the corners
+        cv.drawChessboardCorners(img, (9,6), corners2, ret)
+        cv.imshow(win_name, img)
+        cv.waitKey(500)
+        
+imgMod = img       
+cv.destroyAllWindows()
+ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objPoints, imgPArray, gray.shape[::-1], None, None)
