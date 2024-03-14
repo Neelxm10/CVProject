@@ -43,8 +43,31 @@ imgMod = img
 cv.destroyAllWindows()
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objPArray, imgPArray, gray.shape[::-1], None, None)
 print(mtx)
-#print(dist)
-#print(rvecs)
-#print(tvecs)
+#[fx 0 Cx]
+#[0 fy Cy]
+#[0  0  1]
+
+#Fetch the optimal camera parameters based on the camera matrix and the distortion coefficients
 h,  w = img.shape[:2]
-newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+optimalmtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
+
+#Now we take our images and undistort the image
+distorted = cv.undistort(img, mtx, dist, None, optimalmtx)
+
+#using the roi found from the getOptimalNewCameraMatrix function. we apply a mask based on the roi to crop the image to the roi
+x, y, w, h = roi
+distorted = distorted[y: y+h, x: x+h]
+cv.imshow('distorted image?', distorted)
+
+
+mean_error = 0
+for i in range(len(objPArray)):
+ imgpoints2, _ = cv.projectPoints(objPArray[i], rvecs[i], tvecs[i], mtx, dist)
+ error = cv.norm(imgPArray[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
+ mean_error += error
+ 
+print( "total error: {}".format(mean_error/len(objPArray)))
+
+
+cv.waitKey(3000)
+cv.destroyAllWindows()
