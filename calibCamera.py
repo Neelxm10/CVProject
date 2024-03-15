@@ -5,7 +5,7 @@ import glob
 #PREWORK 
 filedir = "calibration_data/"
 def calibCamera(frame):
-#kmeans clustering for determining corners
+    #kmeans clustering for determining corners
     crit = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 50, 0.00001)
 
     # Prepare object points in 3D space (pre-allocate based on checkerboard)
@@ -59,8 +59,8 @@ def calibCamera(frame):
         #using the roi found from the getOptimalNewCameraMatrix function. we apply a mask based on the roi to crop the image to the roi
         x, y, w, h = roi
         undistorted = undistorted[y: y+h, x: x+h]
-        cv.imshow('distorted image?', undistorted)
-    
+        cv.imshow('undistorted', undistorted)
+        cv.imwrite('calibration_images/calibImg.png', undistorted)
 
         mean_error = 0
         for i in range(len(objPArray)):

@@ -5,7 +5,7 @@ import os
 from ransac import ransac
 from imageProcessor import imageProcessor
 # Import necessary modules for 3D plotting
-from mpl_toolkits.mplot3d import Axes3D
+
 
 # Create lists to store coordinates
 
@@ -36,6 +36,9 @@ try:
                 frame_count_list.append(framecnt)
                 center_xlist.append(centerX)
                 center_ylist.append(centerY)
+
+                imgCoord = np.array([centerX, centerY, 1]).T
+                
                 # Plot the center coordinates with respect to frame count
                 plt.clf()  # Clear the previous plot
                 plt.plot(frame_count_list, center_xlist, label='Center X Coordinate', marker='o', linestyle='-')

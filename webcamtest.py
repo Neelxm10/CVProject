@@ -34,7 +34,7 @@ convertVidFormat(output_file)
 
 ########################Read in output video from live stream and perform camera calibration###########################
 cap2 = cv.VideoCapture('output.mp4')
-num_frames = 10
+num_frames = 20
 while cap2.isOpened():
     # Get total number of frames
     total_frames = int(cap2.get(cv.CAP_PROP_FRAME_COUNT))
@@ -55,8 +55,6 @@ while cap2.isOpened():
             # Pass the file path to the calibCamera function
             mtx = calibCamera("temp_frame.png")
 
-            cv.imshow('Frame', frame2)
-            cv.waitKey(10)  # Wait for any key press to show the next frame
         else:
             print("Error reading frame")
             break
@@ -67,5 +65,6 @@ while cap2.isOpened():
 
 # Release the video capture object
 cap.release()
-os.remove('temp_frame.jpg')
-
+os.remove('temp_frame.png')
+os.remove('output.avi')
+os.remove('output.mp4')
