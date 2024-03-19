@@ -56,7 +56,6 @@ def ransac(img, threshold, max_iterations, min_inline, framecnt, orig):
         #The radius and center of the circle are calculated based on the relationship between the sampled points (xi and yi) and the coordinates of the local maxima. 
         radius = np.mean(np.sqrt((xi - max_coords[1]) ** 2 + (yi - max_coords[0]) ** 2))
         center = (max_coords[1], max_coords[0])
-        
         #Generate the coordinates of the circle and clip them to ensure they are within the image bounds
         th = np.arange(0, 2 * np.pi, 0.01)
         x_circle = (center[0] + radius * np.cos(th)).astype(int)

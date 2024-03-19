@@ -71,11 +71,8 @@ def calibCamera(frame):
         print( "total error: {}".format(mean_error/len(objPArray)))
         cv.waitKey(1500)
         cv.destroyAllWindows()
-        np.save(filedir+'originalIntrinsic.npy', mtx)
-        np.save(filedir+'optimalIntrinsic.npy', optimalmtx)
-        np.save(filedir+'rvecs.npy', rvecs)
-        np.save(filedir+'tvecs.npy', tvecs)
-        np.save(filedir+'roi.npy', roi)
+        return rvecs, tvecs, optimalmtx, roi, dist
+
     else:
         print("No corners detected in frame:", frame)
         return None

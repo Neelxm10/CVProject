@@ -5,8 +5,7 @@ import subprocess
 import os
 from calibCamera import calibCamera
 
-
-
+filedir = 'calibration_data/'
 
 cap = cv.VideoCapture(0)
 ####################################READ INPUT VIDEO STREAM###########################################
@@ -35,6 +34,8 @@ convertVidFormat(output_file)
 ########################Read in output video from live stream and perform camera calibration###########################
 cap2 = cv.VideoCapture('output.mp4')
 num_frames = 20
+rvec = []
+tvec = []
 while cap2.isOpened():
     # Get total number of frames
     total_frames = int(cap2.get(cv.CAP_PROP_FRAME_COUNT))
@@ -53,16 +54,27 @@ while cap2.isOpened():
             # Write the frame to a temporary file
             cv.imwrite("temp_frame.png", frame2)
             # Pass the file path to the calibCamera function
-            mtx = calibCamera("temp_frame.png")
+            output_dat = calibCamera("temp_frame.png")
+            if output_dat is not None:
+                rvecs, tvecs, mtx, roi, dist = output_dat
+                rvec.append(rvecs)
+                tvec.append(tvecs)
+            else:
+                continue
 
         else:
             print("Error reading frame")
             break
 
     # Termination condition: Exit loop if all frames have been processed
+
     print("All frames processed. Exiting the loop.")
     break
 
+np.save(filedir+'optimalIntrinsic.npy', mtx)
+np.save(filedir+'rvecs.npy', rvec)
+np.save(filedir+'tvecs.npy', tvec)
+np.save(filedir+'roi.npy', roi)
 # Release the video capture object
 cap.release()
 os.remove('temp_frame.png')
