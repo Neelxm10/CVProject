@@ -33,3 +33,23 @@ transform_matrix = np.hstack((combined_rotation_matrix, combined_translation_vec
 
 print("testing print of extrinsic parameters: ")
 print(transform_matrix)
+
+ProjectionMtx = cam_mtx.dot(transform_matrix)
+print(ProjectionMtx)
+
+#to find scaling factor
+nickel_d = 21.2 #mm
+nick_radius = nickel_d/2
+
+pixel_radius = 43.1
+
+s = pixel_radius/nick_radius
+
+#
+print(s)
+np.save(savedir+'scalingfactor.npy', s)
+np.save(savedir+'RT.npy', transform_matrix)
+np.save(savedir+'PMtx.npy', ProjectionMtx)
+np.save(savedir+'combinedRot.npy', combined_rotation_matrix)
+np.save(savedir+'combinedTranslation.npy', combined_translation_vector)
+

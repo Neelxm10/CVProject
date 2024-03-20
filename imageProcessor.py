@@ -49,7 +49,7 @@ def imageProcessor(img, framecnt):
 
     cv.waitKey(200)
     if Circle is not None:
-        return Circle[0]  # Return only the center coordinates (x, y)
+        return Circle[0], Circle[1]  # Return only the center coordinates (x, y)
     else:
         return 0,0  # Return None when no circle is found
         

@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-
+from calculateXYZ import calculateXYZ
 def ransac(img, threshold, max_iterations, min_inline, framecnt, orig):
     #Collect number of edge points
     num_points = np.column_stack(np.where(img > 0))
@@ -77,10 +77,13 @@ def ransac(img, threshold, max_iterations, min_inline, framecnt, orig):
     if best_circle is not None:
         # Visualize the best circle
         circ = orig.copy()
+        cx, cy = best_circle[0]
+        x, y, z = calculateXYZ(cx, cy)
+        #print(XYZ)
         cv.circle(circ, best_circle[0], int(best_circle[1]), [0, 255, 0], 2)
         cv.circle(circ, best_circle[0], 5, [0, 0, 255], -1)
-        cv.putText(circ, f'Center: ({best_circle[0][0]}, {best_circle[0][1]})', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1,
-                   (0, 255, 255), 2)
+  # Draw the coordinates
+        cv.putText(circ, f'X: {int(x)}, Y: {int(y)}, Z: {int(z)}', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 
         cv.imshow('Best Circle', circ)
         cv.imwrite(f"Frame_Dump/Best_Circle_Detected{framecnt}.png", circ)

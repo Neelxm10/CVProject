@@ -29,14 +29,13 @@ try:
         state, frame = capture.read()
         if state:
             framecnt += 1
-            centerX, centerY = imageProcessor(frame, framecnt)
+            [centerX, centerY], radius = imageProcessor(frame, framecnt)
 
             # If center x-coordinate is found, append it to the list
             if centerX and centerY is not None:
                 frame_count_list.append(framecnt)
                 center_xlist.append(centerX)
                 center_ylist.append(centerY)
-
                 imgCoord = np.array([centerX, centerY, 1]).T
                 
                 # Plot the center coordinates with respect to frame count
