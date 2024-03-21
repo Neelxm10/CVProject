@@ -38,12 +38,12 @@ ProjectionMtx = cam_mtx.dot(transform_matrix)
 print(ProjectionMtx)
 
 #to find scaling factor
-nickel_d = 21.2 #mm
+nickel_d = 21.25 #mm
 nick_radius = nickel_d/2
 
-pixel_radius = 43.1
+pixel_radius = 25.50 #pixels
 
-s = pixel_radius/nick_radius
+s = pixel_radius/nick_radius #pixels / mm
 
 #
 print(s)

@@ -83,7 +83,7 @@ def ransac(img, threshold, max_iterations, min_inline, framecnt, orig):
         cv.circle(circ, best_circle[0], int(best_circle[1]), [0, 255, 0], 2)
         cv.circle(circ, best_circle[0], 5, [0, 0, 255], -1)
   # Draw the coordinates
-        cv.putText(circ, f'X: {int(x)}, Y: {int(y)}, Z: {int(z)}', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
+        cv.putText(circ, f'X: {(x)} mm \n Y: {(y)} mm \n Z: {(z)} mm', (10, 30), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
 
         cv.imshow('Best Circle', circ)
         cv.imwrite(f"Frame_Dump/Best_Circle_Detected{framecnt}.png", circ)
