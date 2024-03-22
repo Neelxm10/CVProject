@@ -59,3 +59,4 @@ finally:
     plt.ioff()  # Turn off interactive mode
     capture.release()
     plt.show()
+
