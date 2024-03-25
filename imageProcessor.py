@@ -5,25 +5,27 @@ import os
 from ransac import ransac
 
 #Currently converts image to HSV to test functionality. We can build algorithm here.
-img = cv.imread('rond.jpg')
+img = cv.imread('Images/spheres2.jpg')
     
 #show the original image
-cv.imshow('video reader', img)
-
+cv.imshow('img reader', img)
+cv.waitKey(50)
 height, width = img.shape[:2]
 
 # Define the ROI parameters
-top_margin = height // 12  # 1/8th of the height from the top
-bottom_margin = height // 12  # 1/8th of the height from the bottom
-side_margin = width // 4  # 1/4th of the width from each side
+top_margin = height // 6  # 1/8th of the height from the top
+bottom_margin = height // 6 # 1/8th of the height from the bottom
+side_margin = width // 14 # 1/4th of the width from each side
 
 # Applying ROI mask
 roi = img[top_margin:height - bottom_margin, side_margin:width - side_margin]
 avgkernel = np.ones((8,8),np.float32)/(64)
-
+dst = cv.filter2D(roi,-1,avgkernel)
+gaussBlur = cv.GaussianBlur(dst, (5,5), 3)
 # Convert the image to grayscale
-gray_img = cv.cvtColor(roi, cv.COLOR_BGR2GRAY)
-cv.imshow('region of interest', gray_img)
+# gray_img = cv.cvtColor(roi, cv.COLOR_BGR2GRAY)
+gray_img = cv.cvtColor(gaussBlur, cv.COLOR_BGR2GRAY)
+
 # Ensure that the image is of type CV_8UC1
 if gray_img.dtype != np.uint8:
     gray_img = cv.convertScaleAbs(gray_img)
@@ -34,17 +36,17 @@ ret, mask = cv.threshold(gray_img, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
 #create structuring element and use it to perform opening mask
 disc = cv.getStructuringElement(cv.MORPH_RECT, (5,5))
 cv.imshow('mask', mask)  
-
+cv.waitKey(50)
 #dilate, erode, and dilate again.
-eroded_mask = cv.erode(mask, disc,100)
-dilated_mask = cv.dilate(eroded_mask, disc, 5)
+eroded_mask = cv.erode(mask, disc,200)
+# dilated_mask = cv.dilate(eroded_mask, disc, 5)
+dilated_mask = cv.dilate(eroded_mask, disc, 100)
 cv.imshow('mask', dilated_mask)
-    
+cv.waitKey(50)    
 
-edges = cv.Canny(dilated_mask, 50, 200)
+edges = cv.Canny(dilated_mask, 40, 230)
 cv.imshow('edges', edges)
-
-ransac(edges,350, 3000,10)
-
-cv.waitKey(2000)
+cv.waitKey(500)
+ransac(edges,800, 3000,10)
+cv.waitKey(10)
 cv.destroyAllWindows()
